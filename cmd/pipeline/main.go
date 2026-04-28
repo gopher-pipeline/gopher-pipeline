@@ -10,6 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/parser"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/proccesor"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/writer"
 )
 
 // создать 3 пустых файла
@@ -57,10 +59,18 @@ func main() {
 	// 	fmt.Errorf("Error: %v", err)
 	// }
 	generateFiles(3, 25)
-	jobs, err := parser.ParseFile("data/file_0.json")
+	jobs, _ := parser.ParseFile("data/file_0.json")
+
+	results := make([]model.Result, 0)
+
+	for _, job := range jobs {
+		current, _ := proccesor.Transform(job)
+		results = append(results, current)
+	}
+
+	err := writer.WriteSummary(results, "data")
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(jobs)
 
 }
