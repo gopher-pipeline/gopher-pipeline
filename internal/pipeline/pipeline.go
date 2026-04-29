@@ -9,9 +9,9 @@ import (
 )
 
 type Pipeline struct {
-	jobsCh     chan model.Job
-	resultsCh  chan model.Result
-	errCh      chan error
+	jobsCh     <-chan model.Job
+	resultsCh  chan<- model.Result
+	errCh      chan<- error
 	numWorkers int
 	wg         sync.WaitGroup
 }
@@ -48,6 +48,7 @@ func (p *Pipeline) Run(ctx context.Context) {
 					res, err := proccesor.Transform(jobs)
 					if err != nil {
 						p.errCh <- err
+						continue
 					} else {
 						p.resultsCh <- res
 					}
@@ -55,16 +56,8 @@ func (p *Pipeline) Run(ctx context.Context) {
 			}
 		}(i)
 	}
-}
 
-func (p *Pipeline) Stop() <-chan model.Result {
-	close(p.jobsCh)
-
-	go func() {
-		p.wg.Wait()
-		close(p.errCh)
-		close(p.resultsCh)
-	}()
-
-	return p.resultsCh
+	p.wg.Wait()
+	close(p.resultsCh)
+	close(p.errCh)
 }
