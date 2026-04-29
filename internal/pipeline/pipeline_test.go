@@ -28,31 +28,31 @@ func TestPipeline_Run(t *testing.T) {
 	}()
 
 	testJobs := []model.Job{
-		model.Job{
+		{
 			ID:       uuid.New(),
 			Filename: "testfilename",
 			Value:    rand.Int(),
 			Status:   "pending",
 		},
-		model.Job{
+		{
 			ID:       uuid.New(),
 			Filename: "testfilename",
 			Value:    rand.Int(),
 			Status:   "pending",
 		},
-		model.Job{
+		{
 			ID:       uuid.New(),
 			Filename: "testfilename",
 			Value:    rand.Int(),
 			Status:   "pending",
 		},
-		model.Job{
+		{
 			ID:       uuid.New(),
 			Filename: "testfilename",
 			Value:    rand.Int(),
 			Status:   "pending",
 		},
-		model.Job{
+		{
 			ID:       uuid.New(),
 			Filename: "testfilename",
 			Value:    rand.Int(),
