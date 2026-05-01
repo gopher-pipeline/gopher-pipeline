@@ -12,6 +12,7 @@ run:
 clean:
 	@echo "==> Cleaning data folder"
 	@rm -rf data/*
+	@rm -rf out/*
 	@echo "==> Cleaning binary files"
 	@rm -rf main
 	@rm -rf main.exe
