@@ -11,7 +11,7 @@ import (
 func WriteSummary(results []model.Result, path string) error {
 	file, err := os.Create(path + "/summary.json")
 	if err != nil {
-		return fmt.Errorf("Error while creating file: %v", err)
+		return fmt.Errorf("error while creating file: %v", err)
 	}
 	defer file.Close()
 
