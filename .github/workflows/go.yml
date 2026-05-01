@@ -37,7 +37,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: 'latest'
+          version: v2.11.4
 
       - name: Build
         run: go build ./...
@@ -47,19 +47,3 @@ jobs:
 
       - name: Show coverage
         run: go tool cover -func=coverage.out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
