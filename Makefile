@@ -1,5 +1,6 @@
 
 LINT_FLAGS := --timeout 5m
+LINT_VERSION := v2.11.4
 
 build:
 	@echo "==> Building project"
@@ -58,6 +59,6 @@ pre-commit: fmt vet test
 
 install-tools:
 	@echo "==> Installing development tools"
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(LINT_VERSION)
 	go install golang.org/x/tools/cmd/goimports@latest
 

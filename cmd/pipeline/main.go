@@ -22,7 +22,7 @@ import (
 // через encode записать 3 массива в 3 файла
 func generateFiles(numFiles int, numJobs int) {
 	for i := 0; i < numFiles; i++ {
-		var filename string = fmt.Sprintf("file_%d.json", i)
+		filename := fmt.Sprintf("file_%d.json", i)
 		file, err := os.Create("data/" + filename)
 		if err != nil {
 			log.Fatal("Error creating file: ", err)
@@ -37,7 +37,12 @@ func generateFiles(numFiles int, numJobs int) {
 			log.Printf("encode error: %v", err)
 		}
 
-		defer file.Close()
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				fmt.Printf("Error: %v", err)
+			}
+		}(file)
 	}
 }
 

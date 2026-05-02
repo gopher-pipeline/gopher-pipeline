@@ -13,7 +13,13 @@ func WriteSummary(results []model.Result, path string) error {
 	if err != nil {
 		return fmt.Errorf("error while creating file: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("Error: %v", err)
+			return
+		}
+	}(file)
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", " ")
