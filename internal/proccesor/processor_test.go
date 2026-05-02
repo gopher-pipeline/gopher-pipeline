@@ -1,7 +1,6 @@
 package proccesor
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -35,7 +34,7 @@ func TestTransform(t *testing.T) {
 				Status:   "done",
 			}, model.Result{
 				JobID:          testUUID,
-				ProcessedValue: -5,
+				ProcessedValue: -10,
 				ErrorMessage:   model.ErrInvalidValue,
 			}, true,
 		},
@@ -44,10 +43,12 @@ func TestTransform(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := Transform(tt.job)
 			if result != tt.expected {
-				fmt.Errorf("error while transform method working")
+				t.Log(tt.expected)
+				t.Log(result)
+				t.Errorf("error while transform method working")
 			}
 			if (err != nil) != tt.wantErr {
-				fmt.Errorf("got err=%v, wantErr=%v", err, tt.wantErr)
+				t.Errorf("got err=%v, wantErr=%v", err, tt.wantErr)
 			}
 		})
 	}

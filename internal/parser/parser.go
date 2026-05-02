@@ -14,7 +14,13 @@ func ParseFile(filename string) ([]model.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			fmt.Printf("Error: %v", err)
+			return
+		}
+	}(f)
 
 	if err := json.NewDecoder(f).Decode(&jobs); err != nil {
 		return nil, fmt.Errorf("loadConfig: %w", err)
