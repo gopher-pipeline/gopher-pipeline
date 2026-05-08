@@ -16,21 +16,26 @@ type Pipeline struct {
 	errCh       chan<- error
 	numWorkers  int
 	wg          sync.WaitGroup
-	limiter     ratelimit.Limiter
+	limiter     *ratelimit.Limiter
 	retryConfig retry.Config
 }
 
 func NewPipeline(
 	jobsCh chan model.Job,
 	resultCh chan model.Result,
-	errCh chan error, numWorkers int,
+	errCh chan error,
+	numWorkers int,
+	limiter *ratelimit.Limiter,
+	config retry.Config,
 ) *Pipeline {
 
 	return &Pipeline{
-		jobsCh:     jobsCh,
-		resultsCh:  resultCh,
-		errCh:      errCh,
-		numWorkers: numWorkers,
+		jobsCh:      jobsCh,
+		resultsCh:   resultCh,
+		errCh:       errCh,
+		numWorkers:  numWorkers,
+		limiter:     limiter,
+		retryConfig: config,
 	}
 }
 

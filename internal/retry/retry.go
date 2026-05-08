@@ -5,8 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"time"
-
-	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 )
 
 type Config struct {
@@ -19,19 +17,19 @@ type Config struct {
 
 func Do(ctx context.Context, cfg Config, fn func() error) error {
 	if cfg.MaxAttempts < 1 {
-		return model.ErrRetryConfigAttempts
+		return ErrRetryConfigAttempts
 	}
 
 	if cfg.InitialDelay <= 0 {
-		return model.ErrRetryConfigInitialDelay
+		return ErrRetryConfigInitialDelay
 	}
 
 	if cfg.MaxDelay <= 0 {
-		return model.ErrRetryConfigMaxDelay
+		return ErrRetryConfigMaxDelay
 	}
 
 	if cfg.Multiplier < 1 {
-		return model.ErrRetryConfigMultiplier
+		return ErrRetryConfigMultiplier
 	}
 
 	var lastErr error = nil
@@ -87,5 +85,5 @@ func addJitter(delay time.Duration) time.Duration {
 	if delay < 0 {
 		return 0
 	}
-	return time.Duration(rand.Int63n(int64(delay) + 1))
+	return time.Duration(int(delay) + rand.Intn(int(delay/4)))
 }
