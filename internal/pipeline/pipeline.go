@@ -6,14 +6,18 @@ import (
 
 	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/proccesor"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/ratelimit"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/retry"
 )
 
 type Pipeline struct {
-	jobsCh     <-chan model.Job
-	resultsCh  chan<- model.Result
-	errCh      chan<- error
-	numWorkers int
-	wg         sync.WaitGroup
+	jobsCh      <-chan model.Job
+	resultsCh   chan<- model.Result
+	errCh       chan<- error
+	numWorkers  int
+	wg          sync.WaitGroup
+	limiter     ratelimit.Limiter
+	retryConfig retry.Config
 }
 
 func NewPipeline(
@@ -45,12 +49,37 @@ func (p *Pipeline) Run(ctx context.Context) {
 						return
 					}
 
-					res, err := proccesor.Transform(jobs)
+					err := p.limiter.Wait(ctx)
 					if err != nil {
-						p.errCh <- err
+						select {
+						case p.errCh <- err:
+						case <-ctx.Done():
+						}
+						return
+					}
+
+					var result model.Result
+					err = retry.Do(ctx, p.retryConfig, func() error {
+						tempResult, err := proccesor.Transform(jobs)
+						if err != nil {
+							return err
+						}
+						result = tempResult
+						return nil
+					})
+
+					if err != nil {
+						select {
+						case p.errCh <- err:
+						case <-ctx.Done():
+						}
 						continue
-					} else {
-						p.resultsCh <- res
+					}
+
+					select {
+					case p.resultsCh <- result:
+					case <-ctx.Done():
+						return
 					}
 				}
 			}
