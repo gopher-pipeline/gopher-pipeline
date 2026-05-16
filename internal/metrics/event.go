@@ -1,6 +1,10 @@
 package metrics
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type EventType string
 
@@ -13,7 +17,7 @@ const (
 
 type Event struct {
 	Type      EventType
-	JobID     string
+	JobID     uuid.UUID
 	WorkerID  int
 	Timestamp time.Time
 	Duration  time.Duration

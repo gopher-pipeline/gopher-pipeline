@@ -3,7 +3,9 @@ package pipeline
 import (
 	"context"
 	"sync"
+	"time"
 
+	"github.com/gopher-pipeline/gopher-pipeline/internal/metrics"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/proccesor"
 )
@@ -14,12 +16,16 @@ type Pipeline struct {
 	errCh      chan<- error
 	numWorkers int
 	wg         sync.WaitGroup
+	collector  *metrics.Collector
+	done       chan struct{}
 }
 
 func NewPipeline(
 	jobsCh chan model.Job,
 	resultCh chan model.Result,
-	errCh chan error, numWorkers int,
+	errCh chan error,
+	numWorkers int,
+	collector *metrics.Collector,
 ) *Pipeline {
 
 	return &Pipeline{
@@ -27,7 +33,12 @@ func NewPipeline(
 		resultsCh:  resultCh,
 		errCh:      errCh,
 		numWorkers: numWorkers,
+		collector:  collector,
 	}
+}
+
+func (p *Pipeline) Done() <-chan struct{} {
+	return p.done
 }
 
 func (p *Pipeline) Run(ctx context.Context) {
@@ -44,14 +55,43 @@ func (p *Pipeline) Run(ctx context.Context) {
 					if !ok {
 						return
 					}
+					start := time.Now()
+					if p.collector != nil {
+						p.collector.Send(metrics.Event{
+							Type:      metrics.EventJobStarted,
+							JobID:     jobs.ID,
+							WorkerID:  workerID,
+							Timestamp: start,
+						})
+					}
 
 					res, err := proccesor.Transform(jobs)
 					if err != nil {
+						if p.collector != nil {
+							p.collector.Send(metrics.Event{
+								Type:      metrics.EventJobFailed,
+								JobID:     jobs.ID,
+								WorkerID:  workerID,
+								Timestamp: time.Now(),
+								Duration:  time.Since(start),
+								Err:       err,
+							})
+						}
 						p.errCh <- err
 						continue
 					} else {
+						if p.collector != nil {
+							p.collector.Send(metrics.Event{
+								Type:      metrics.EventJobSuccess,
+								JobID:     jobs.ID,
+								WorkerID:  workerID,
+								Timestamp: time.Now(),
+								Duration:  time.Since(start),
+							})
+						}
 						p.resultsCh <- res
 					}
+
 				}
 			}
 		}(i)

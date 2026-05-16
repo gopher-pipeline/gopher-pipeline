@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/metrics"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 )
 
@@ -14,11 +15,12 @@ func TestPipeline_Run(t *testing.T) {
 	jobsCh := make(chan model.Job, 10)
 	resultCh := make(chan model.Result, 10)
 	errCh := make(chan error, 10)
+	collector := metrics.NewCollector(10)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	pipeline := NewPipeline(jobsCh, resultCh, errCh, 3)
+	pipeline := NewPipeline(jobsCh, resultCh, errCh, 3, collector)
 
 	go pipeline.Run(ctx)
 	go func() {

@@ -10,16 +10,13 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/gopher-pipeline/gopher-pipeline/internal/metrics"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/model"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/parser"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/pipeline"
 	"github.com/gopher-pipeline/gopher-pipeline/internal/writer"
 )
 
-// создать 3 пустых файла
-// форик на 300 который будет создавать 300 джобов
-// 300 джобов будут заполнять 3 массива
-// через encode записать 3 массива в 3 файла
 func generateFiles(numFiles int, numJobs int) {
 	for i := 0; i < numFiles; i++ {
 		filename := fmt.Sprintf("file_%d.json", i)
@@ -94,7 +91,9 @@ func main() {
 		close(bufJobsCh)
 	}()
 
-	p := pipeline.NewPipeline(bufJobsCh, bufResCh, bufErrCh, 5)
+	collector := metrics.NewCollector(10)
+	p := pipeline.NewPipeline(bufJobsCh, bufResCh, bufErrCh, 5, collector)
+	collector.Run(ctx)
 	go p.Run(ctx)
 
 	results := make([]model.Result, 0)
@@ -106,5 +105,11 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error: %v", err)
 	}
+
+	<-p.Done()
+	cancel()
+	collector.Wait()
+
+	fmt.Println(collector.Stats())
 
 }
